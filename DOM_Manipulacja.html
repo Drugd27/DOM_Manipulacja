@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manipulacja DOM w jQ</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="http://code.jquery.com/color/jquery.color-2.1.2.min.js"></script>
+
+    <style>
+
+        dbody {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+.list-group-item {
+    padding: 8px;
+    background: #f0f0f0;
+    margin: 4px 0;
+    cursor: pointer;
+}
+
+.active {
+    background: #a3d2ff !important;
+}
+
+#shoppingList {
+    width: 250px;
+}
+
+input, button {
+    margin: 5px;
+}
+
+    </style>
+</head>
+<body>
+    <h1>Lista zakupów</h1>
+
+    <input type="text" id="productInput" placeholder="Wpisz produkt">
+    <button id="addBtn">Dodaj produkt</button>
+    <button id="addStartBtn">Dodaj na początku</button>
+    <button id="addEndBtn">Dodaj na końcu</button>
+    <button id="removeLastBtn">Usuń ostatni produkt</button>
+    <button id="clearBtn">Wyczyść listę</button>
+    <button id="restoreBtn">Przywróć listę</button>
+    <button id="colorBtn">Pokoloruj co drugi</button>
+    <button id="sortBtn">Sortuj A–Z</button>
+
+    <input type="text" id="filterInput" placeholder="Filtruj...">
+    <button id="filterBtn">Filtruj</button>
+
+    <ul id="shoppingList" class="list-group">
+        <li class="list-group-item">Chleb</li>
+        <li class="list-group-item">Masło</li>
+        <li class="list-group-item">Ser</li>
+    </ul>
+</body>
+<script>
+
+$(document).ready(function () {
+
+function addItem(position = "end") {
+    let product = $("#productInput").val().trim();
+    if (product === "") return;
+
+    let li = $("<li></li>")
+        .text(product)
+        .addClass("list-group-item");
+
+    if (position === "start") $("#shoppingList").prepend(li);
+    else $("#shoppingList").append(li);
+
+    $("#productInput").val("");
+}
+
+$("#addBtn").click(() => addItem());
+$("#addStartBtn").click(() => addItem("start"));
+$("#addEndBtn").click(() => addItem("end"));
+
+$("#removeLastBtn").click(() => {
+    $("#shoppingList li:last").remove();
+});
+
+$("#clearBtn").click(() => {
+    $("#shoppingList").empty();
+});
+
+$("#restoreBtn").click(() => {
+    $("#shoppingList").html(`
+        <li class="list-group-item">Chleb</li>
+        <li class="list-group-item">Masło</li>
+        <li class="list-group-item">Ser</li>
+    `);
+    makeEditable();
+});
+
+$("#colorBtn").click(() => {
+    $("#shoppingList li:even").css("background", "#d3ffd3");
+});
+
+$("#sortBtn").click(() => {
+    let items = $("#shoppingList li").get();
+
+    items.sort((a, b) =>
+        $(a).text().localeCompare($(b).text())
+    );
+
+    $("#shoppingList").empty().append(items);
+});
+
+$("#filterBtn").click(() => {
+    let phrase = $("#filterInput").val().toLowerCase();
+
+    $("#shoppingList li").each(function () {
+        let text = $(this).text().toLowerCase();
+        $(this).toggle(text.includes(phrase));
+    });
+});
+
+$("#shoppingList").sortable();
+
+function makeEditable() {
+    $("#shoppingList li").off("click").on("click", function () {
+
+        let li = $(this);
+        let oldText = li.text();
+
+        let input = $("<input>")
+            .val(oldText)
+            .css("width", "90%");
+
+        li.fadeOut(200, function () {
+            li.html(input);
+            li.fadeIn(200);
+        });
+
+        input.focus();
+
+        input.on("keypress", function (e) {
+            if (e.key === "Enter") {
+                let newText = input.val();
+                li.fadeOut(200, function () {
+                    li.text(newText);
+                    li.fadeIn(200);
+                });
+            }
+        });
+
+        li.addClass("active").siblings().removeClass("active");
+    });
+}
+
+makeEditable();
+});
+</script>
+</html>
